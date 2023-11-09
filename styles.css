@@ -1,8 +1,23 @@
-/*
+.plugin-mc-show-whitespace-disabled {
+    opacity: 0.6;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.plugin-mc-show-whitespace-disabled .checkbox-container {
+    cursor: not-allowed;
+    pointer-events: none;
+}
 
-If your plugin does not need CSS, delete this file.
+.plugin-mc-highlight {
+    font-size: var(--font-smaller);
+    padding: var(--pill-padding-y) var(--tag-padding-x);
+    white-space: nowrap;
 
-*/
+    background-color: var(--background-primary-alt);
+    color: var(--text-muted);
+    border-radius: 50px;
+}
+
+.plugin-mc-highlight.plugin-mc-high-contrast {
+    background-color: hsla(var(--interactive-accent-hsl), 0.1);
+    color: var(--text-accent);
+}
