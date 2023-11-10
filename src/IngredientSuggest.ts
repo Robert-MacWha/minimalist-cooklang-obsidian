@@ -118,13 +118,13 @@ export class IngredientSuggestModal extends EditorSuggest<Ingredient> {
         }
 
         let ingredientStr = "@" + suggestion.name 
-        let cursorPos: EditorPosition = {line: this.context.end.line, ch: this.context.end.ch}
+        let cursorPos: EditorPosition = {line: this.context.end.line, ch: this.context.start.ch}
         if (this.plugin.settings.autocompleteWithUnits && suggestion.units) {
-            cursorPos.ch += ingredientStr.length
+            cursorPos.ch += ingredientStr.length + 1
             ingredientStr += "{%" + suggestion.units + "}"
         } else {
             ingredientStr += "{}"
-            cursorPos.ch += ingredientStr.length - 1
+            cursorPos.ch += ingredientStr.length
         }
         activeView.editor.replaceRange(ingredientStr, this.context.start, this.context.end);
 
