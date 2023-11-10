@@ -10,11 +10,11 @@ export class IngredientSuggestModal extends EditorSuggest<Ingredient> {
         this.app = app
         this.plugin = plugin
     }
-
+    
     getSuggestions(context: EditorSuggestContext): Ingredient[] {
-        if (!this.plugin.ingredientDatabase) return []
+        let ingredients =  Array.from(this.plugin.settings.ingredients.values())
+        if (!ingredients) return []
 
-        const ingredients = Array.from(this.plugin.ingredientDatabase.values())
         const query = context.query
 
         // filter out ingredients not starting with the prefix
@@ -32,14 +32,32 @@ export class IngredientSuggestModal extends EditorSuggest<Ingredient> {
 
             if (this.plugin.settings.autocompleteWithUnits) {
                 if (!e.raw) return
-                if (filteredSet.has(e.raw)) return
-                filteredSet.add(e.raw)
+                if (filteredSet.has(e.name + e.units)) return
+                filteredSet.add(e.name + e.units)
             } else {
                 if (filteredSet.has(e.name)) return
                 filteredSet.add(e.name)
             }
 
             uniqueFiltered.push(e)
+        })
+
+        uniqueFiltered = uniqueFiltered.sort((a, b) => {
+            if (!a.name) return 1
+            if (!b.name) return -1
+
+            const nameA = a.name.toUpperCase();
+            const nameB = b.name.toUpperCase();
+
+            if (nameA < nameB) {
+            return -1;
+            }
+            if (nameA > nameB) {
+            return 1;
+            }
+
+            // names must be equal
+            return 0;
         })
 
         return uniqueFiltered
@@ -100,11 +118,16 @@ export class IngredientSuggestModal extends EditorSuggest<Ingredient> {
         }
 
         let ingredientStr = "@" + suggestion.name 
+        let cursorPos: EditorPosition = {line: this.context.end.line, ch: this.context.end.ch}
         if (this.plugin.settings.autocompleteWithUnits && suggestion.units) {
+            cursorPos.ch += ingredientStr.length
             ingredientStr += "{%" + suggestion.units + "}"
         } else {
             ingredientStr += "{}"
+            cursorPos.ch += ingredientStr.length - 1
         }
         activeView.editor.replaceRange(ingredientStr, this.context.start, this.context.end);
+
+        activeView.editor.setCursor(cursorPos)
     } 
 }

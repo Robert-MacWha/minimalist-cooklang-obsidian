@@ -1,16 +1,21 @@
 import { App, PluginSettingTab, Setting } from "obsidian"
 import MinimalCooklang from "../main"
+import { Ingredient } from "cooklang"
 
 export interface MinimalCooklangSettings {
     autocomplete: boolean
     autocompleteWithUnits: boolean
     highContrast: boolean
+    showIngredientsInReading: boolean
+    ingredients: Map<string, Ingredient>
 }
 
 export const DEFAULT_SETTINGS: MinimalCooklangSettings = {
     autocomplete: true,
     autocompleteWithUnits: false,
     highContrast: false,
+    showIngredientsInReading: true,
+    ingredients: new Map<string, Ingredient>(),
 }
 
 export class MinimalCooklangSettingsTab extends PluginSettingTab {
@@ -61,6 +66,17 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
         .addToggle(cb => {
             cb.setValue(this.plugin.settings.highContrast).onChange(v => {
                 this.plugin.settings.highContrast = v
+                this.plugin.saveSettings()
+                this.plugin.refreshMarkdown()
+            })
+        })
+
+        new Setting(containerEl)
+        .setName("Ingredients List")
+        .setDesc("Show a list of all ingredients used in a recipe while in the reading view.")
+        .addToggle(cb => {
+            cb.setValue(this.plugin.settings.showIngredientsInReading).onChange(v => {
+                this.plugin.settings.showIngredientsInReading = v
                 this.plugin.saveSettings()
                 this.plugin.refreshMarkdown()
             })

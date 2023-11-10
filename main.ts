@@ -3,22 +3,30 @@ import { Recipe, Ingredient } from 'cooklang';
 
 import { MinimalCooklangSettings, DEFAULT_SETTINGS, MinimalCooklangSettingsTab } from './src/Settings'
 import { IngredientSuggestModal } from './src/IngredientSuggest';
-import { PostProcessRecipeMarkdown } from './src/MarkdownPostProcessor';
+import { HighlightRecipeKeywords, PrependIngredientsHeader } from './src/MarkdownPostProcessor';
+
+// TODO: fix bug where, when calling the `refreshMarkdown` method, the frontmatter and document header are removed.
+
+// TODO: Need to figure out editor extensions so the highlighting can be viewed in the preview mode.
+
+// TODO: Would like to write a better interpreter than cooklang, since it's annoying to write.
+// maybe @ingredient (amount unit) with space seperators?  Could also try to be more inteligent with recognising units and such.
+
+// TODO: Automatic unit conversion
+
+// TODO: Update README
 
 export default class MinimalCooklang extends Plugin {
 	settings: MinimalCooklangSettings
-	ingredientDatabase: Set<Ingredient> = new Set()
-
-	inRecipeFile: boolean = false
-	recipe: Recipe
 
 	async onload() {
 		await this.loadSettings()
 
 		this.registerEvent(this.app.workspace.on('file-open', this.handleFileOpen.bind(this)))
 		this.registerEditorSuggest(new IngredientSuggestModal(this.app, this))
-		this.registerMarkdownPostProcessor((element, context) => {
-			PostProcessRecipeMarkdown(element, context, this)
+		this.registerMarkdownPostProcessor(async (element, context) => {
+			HighlightRecipeKeywords(element, context, this)
+			PrependIngredientsHeader(element, context, this)
 		})
 	}
 
@@ -30,6 +38,7 @@ export default class MinimalCooklang extends Plugin {
 			await this.loadData(),
 		)
 
+		this.settings.ingredients = new Map(Object.entries(this.settings.ingredients));
 		this.addSettingTab(new MinimalCooklangSettingsTab(this.app, this))
 	}
 
@@ -39,20 +48,14 @@ export default class MinimalCooklang extends Plugin {
 
 	// handleFileOpen handels the app.workspace.on('file-open') event.
 	async handleFileOpen(file: TFile) {
-		this.inRecipeFile = false
 		if (!file) return;
-		if (!this.isRecipe(file)) return;
 
-		this.inRecipeFile = true
-		let fileContent: string = await this.app.vault.read(file)
-		const recipe = this.parseRecipe(fileContent);
-		this.addIngredientsToDatabase(recipe)
-	}
-
-	// isRecipe returns whether a given file counts as a recipe.
-	isRecipe(file: TFile): boolean {
 		let tags = this.getTags(file)
-		return tags.contains("#Recipe")
+		if (!IsRecipe(tags)) return;
+		
+		let fileContents = await this.app.vault.read(file)
+		const recipe = this.loadRecipe(fileContents);
+		this.addIngredientsToDatabase(recipe)
 	}
 
 	// getTags returns an ordered list of all tags present in the file.
@@ -77,12 +80,9 @@ export default class MinimalCooklang extends Plugin {
 		return tags
 	}
 
-	// parseRecipe accepts the contents of a file, from which a cooklang structure 
-	// is created.
-	parseRecipe(content: string): Recipe {
-		// This regular expression checks if "---" is at the very start of the 
-		// content (^---) followed by any content until it reaches another "---" 
-		// on a new line, followed by optional whitespace (\s*)
+	// loadRecipe loads the contents of a string and returns the parsed 
+	// cooklang recipe.
+	loadRecipe(content: string): Recipe {
 		const frontMatterRegex = /^---[\s\S]+?---\s*/;
 		content = content.replace(frontMatterRegex, '');
 
@@ -93,9 +93,11 @@ export default class MinimalCooklang extends Plugin {
 	// addIngredientsToDatabase adds all of a recipe's ingredients to the ingredients database
 	addIngredientsToDatabase(recipe: Recipe) {
 		recipe.ingredients.forEach(e => {
-			if (!e.name) return
-			this.ingredientDatabase.add(e)
+			if (!e.raw) return
+			this.settings.ingredients[e.raw] = e
 		})
+
+		this.saveSettings()
 	}
 
 	refreshMarkdown() {
@@ -103,4 +105,34 @@ export default class MinimalCooklang extends Plugin {
 		if (!view) return
 		view.previewMode.rerender(true);
 	}
+}
+
+export function IsRecipe(tags: string[]): boolean {
+	const RecipeTag: string = "#Recipe"
+	if (tags.contains(RecipeTag) || tags.contains(RecipeTag.replace("#", ""))) {
+		return true
+	}
+
+	return false
+}
+
+export function RenderIngredient(i: Ingredient, highContrast: boolean, spanned: boolean): string {
+	if (!i.name) return ""
+	let iStr = i.name
+
+	if (i.quantity && i.units) {
+		iStr += " (" + i.amount + " " + i.units + ")"
+	} else if (i.amount && i.amount != '1') {
+		iStr += " (" + i.amount + ")"
+	}
+
+	if (!spanned) return iStr
+
+	if (highContrast) {
+		iStr = "<span class='plugin-mc-highlight plugin-mc-high-contrast'>" + iStr + "</span>"
+	} else {
+		iStr = "<span class='plugin-mc-highlight'>" + iStr + "</span>"
+	}
+
+	return iStr
 }
