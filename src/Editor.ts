@@ -37,7 +37,11 @@ function buildDecorations(state: EditorState, plugin: MinimalCooklang): RangeSet
             const recipe = LoadRecipe(text)
 
             //* Prepend ingredients
-            if (recipe.steps.length > 0 && recipe.steps[0].raw) {
+            if (
+                plugin.settings.showIngredientsListPreview &&
+                recipe.steps.length > 0 &&
+                recipe.steps[0].raw
+            ) {
                 const from = text.indexOf(recipe.steps[0].raw)
                 builder.add(
                     from,
@@ -93,7 +97,7 @@ class ingredientsListWidget extends WidgetType {
     }
 
     toDOM() {
-        return RenderIngredientsList(this.recipe, this.settings)
+        return RenderIngredientsList(this.recipe)
     }
 }
 
@@ -107,7 +111,7 @@ class ingredientWidget extends WidgetType {
     }
 
     toDOM(view: EditorView): HTMLElement {
-        const ingredientText = RenderIngredient(this.ingredient, this.settings)
+        const ingredientText = RenderIngredient(this.ingredient, this.settings.showIngredientAmounts)
         const ingredientHTML = SpanString(ingredientText, this.settings.highContrast)
 
         // Attach an event listener to the ingredientHTML element

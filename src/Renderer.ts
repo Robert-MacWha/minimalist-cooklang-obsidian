@@ -1,14 +1,14 @@
 import { Recipe, Ingredient, Timer } from "cooklang"
 import { MinimalCooklangSettings } from "./Settings"
 
-export function RenderIngredientsList(recipe: Recipe, settings: MinimalCooklangSettings): HTMLElement {
+export function RenderIngredientsList(recipe: Recipe): HTMLElement {
 	let ingredientsHTML = document.createElement("div")
 	ingredientsHTML.classList.add("mc-plugin-ingredients")
 	ingredientsHTML.createEl("h1", { text: "Ingredients" })
 
 	const ingredientsList = ingredientsHTML.createEl("ul")
 	recipe.ingredients.forEach(i => {
-		let ingredient = RenderIngredient(i, settings)
+		let ingredient = RenderIngredient(i, true)
 		ingredientsList.createEl("li", { text: ingredient })
 	});
 
@@ -29,11 +29,11 @@ export function RenderTimer(t: Timer, settings: MinimalCooklangSettings): string
 }
 
 // RenderIngredient renders an ingredient object to a string.
-export function RenderIngredient(i: Ingredient, settings: MinimalCooklangSettings): string {
+export function RenderIngredient(i: Ingredient, showIngredientAmounts: boolean): string {
 	if (!i.name) return ""
 	let str = i.name
 
-	if (!settings.showIngredientAmounts) return str
+	if (!showIngredientAmounts) return str
 
 	if (i.amount && i.units) {
 		str += " (" + i.amount + " " + i.units + ")"

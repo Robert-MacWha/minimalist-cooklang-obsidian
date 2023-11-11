@@ -15,7 +15,7 @@ export async function PrependIngredientsHeader(element: HTMLElement, context: Ma
     const recipe = LoadRecipe(fileContents)
     if (!recipe) return
 
-    element.append(RenderIngredientsList(recipe, plugin.settings))
+    element.append(RenderIngredientsList(recipe))
 }
 
 export function HighlightRecipeKeywords(element: HTMLElement, context: MarkdownPostProcessorContext, plugin: MinimalCooklang) {
@@ -29,7 +29,7 @@ export function HighlightRecipeKeywords(element: HTMLElement, context: MarkdownP
         const ingredients = lineRecipe.ingredients
         ingredients.forEach(e => {
             if (!e.raw) return
-            const lineHTML = SpanString(RenderIngredient(e, plugin.settings), plugin.settings.highContrast)
+            const lineHTML = SpanString(RenderIngredient(e, plugin.settings.showIngredientAmounts), plugin.settings.highContrast)
             line = line.replace(e.raw, lineHTML.outerHTML)
         })
 

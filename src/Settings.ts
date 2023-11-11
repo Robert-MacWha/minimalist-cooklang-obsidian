@@ -7,6 +7,7 @@ export interface MinimalCooklangSettings {
     autocompleteWithUnits: boolean
     highContrast: boolean
     showIngredientsList: boolean
+    showIngredientsListPreview: boolean
     showIngredientAmounts: boolean
     reformatTime: boolean
     ingredients: Map<string, Ingredient>
@@ -17,6 +18,7 @@ export const DEFAULT_SETTINGS: MinimalCooklangSettings = {
     autocompleteWithUnits: false,
     highContrast: false,
     showIngredientsList: true,
+    showIngredientsListPreview: true,
     showIngredientAmounts: true,
     reformatTime: true,
     ingredients: new Map<string, Ingredient>(),
@@ -43,6 +45,7 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
             .addToggle((cb) => {
                 cb.setValue(this.plugin.settings.autocomplete).onChange(v => {
                     this.plugin.settings.autocomplete = v
+                    this.plugin.settings.autocompleteWithUnits = false
                     this.plugin.saveSettings()
                     this.display()
                 })
@@ -59,8 +62,7 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
             })
 
         if (!this.plugin.settings.autocomplete) {
-            // if general spaces are off it doesn't make sense to change the setting
-            // to show or hide single spaces between words
+            // if autocomplete is off, this plugin doesn't really make sense
             autocompleteWithUnitsSetting.setClass('plugin-mc-show-whitespace-disabled');
         }
 
@@ -70,17 +72,6 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
             .addToggle(cb => {
                 cb.setValue(this.plugin.settings.highContrast).onChange(v => {
                     this.plugin.settings.highContrast = v
-                    this.plugin.saveSettings()
-                    this.plugin.refreshMarkdown()
-                })
-            })
-
-        new Setting(containerEl)
-            .setName("Show Ingredients List")
-            .setDesc("Show a list of all ingredients used in a recipe while in the reading view.")
-            .addToggle(cb => {
-                cb.setValue(this.plugin.settings.showIngredientsList).onChange(v => {
-                    this.plugin.settings.showIngredientsList = v
                     this.plugin.saveSettings()
                     this.plugin.refreshMarkdown()
                 })
@@ -98,6 +89,35 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
             })
 
         new Setting(containerEl)
+            .setName("Show Ingredients List")
+            .setDesc("Show a list of all ingredients used in a recipe while in the reading view.")
+            .addToggle(cb => {
+                cb.setValue(this.plugin.settings.showIngredientsList).onChange(v => {
+                    this.plugin.settings.showIngredientsList = v
+                    this.plugin.settings.showIngredientsListPreview = false
+                    this.plugin.saveSettings()
+                    this.plugin.refreshMarkdown()
+                    this.display()
+                })
+            })
+
+        const showIngredientListPreviewSetting = new Setting(containerEl)
+            .setName("Show Ingredients List in Preview")
+            .setDesc("Show the list of ingredients in preview mode as well as reading view.")
+            .addToggle((cb) => {
+                cb.setValue(this.plugin.settings.showIngredientsListPreview).onChange(v => {
+                    this.plugin.settings.showIngredientsListPreview = v
+                    this.plugin.saveSettings()
+                    this.plugin.refreshMarkdown()
+                })
+            })
+
+        if (!this.plugin.settings.showIngredientsList) {
+            // if the ingredients list is off, this plugin doesn't really make sense
+            showIngredientListPreviewSetting.setClass('plugin-mc-show-whitespace-disabled');
+        }
+
+        new Setting(containerEl)
             .setName("Reformat Time")
             .setDesc("Standardize the way timers are show.  May result in odd figures for very specific timers.")
             .addToggle(cb => {
@@ -107,5 +127,6 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
                     this.plugin.refreshMarkdown()
                 })
             })
+
     }
 }

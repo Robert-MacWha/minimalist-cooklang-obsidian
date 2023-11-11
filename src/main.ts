@@ -8,9 +8,9 @@ import { CreateEditorPlugin } from './Editor';
 
 // TODO: fix bug where, when calling the `refreshMarkdown` method, the frontmatter and document header are removed.
 
-// TODO: Sort the editor extension decorations so we can show multiple types of widgets at the same time (ingredients and timers)
+// TODO: Figure out how to disable the plugin when source view is enabled
 
-// TODO: Switch to a state editor extension / find a way to render the ingredients in preview mode
+// TODO: Sort the editor extension decorations so we can show multiple types of widgets at the same time (ingredients and timers)
 
 // TODO: Update README
 
@@ -91,9 +91,9 @@ export default class MinimalCooklang extends Plugin {
 	}
 
 	refreshMarkdown() {
-		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-		if (!view) return
-		view.previewMode.rerender(true);
+		const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!markdownView) return
+		markdownView.previewMode.rerender(true);
 	}
 }
 
