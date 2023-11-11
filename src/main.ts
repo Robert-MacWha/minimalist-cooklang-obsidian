@@ -10,8 +10,6 @@ import { CreateEditorPlugin } from './Editor';
 
 // TODO: Figure out how to disable the plugin when source view is enabled
 
-// TODO: Sort the editor extension decorations so we can show multiple types of widgets at the same time (ingredients and timers)
-
 // TODO: Update README
 
 export default class MinimalCooklang extends Plugin {
@@ -32,18 +30,20 @@ export default class MinimalCooklang extends Plugin {
 
 	async loadSettings() {
 		// Object.assign lets you clone the data, so defaults are not overidden
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			await this.loadData(),
-		)
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 
-		this.settings.ingredients = new Map(Object.entries(this.settings.ingredients));
-		this.addSettingTab(new MinimalCooklangSettingsTab(this.app, this))
+		// Check if ingredients is an array and convert it to a Map
+		if (Array.isArray(this.settings.ingredients)) {
+			this.settings.ingredients = new Map(this.settings.ingredients);
+		}
+
+		this.addSettingTab(new MinimalCooklangSettingsTab(this.app, this));
 	}
 
 	async saveSettings() {
-		this.saveData(this.settings)
+		const ingredientsArray = Array.from(this.settings.ingredients.entries());
+		const saveData = { ...this.settings, ingredients: ingredientsArray };
+		this.saveData(saveData)
 	}
 
 	// handleFileOpen handels the app.workspace.on('file-open') event.
@@ -84,16 +84,18 @@ export default class MinimalCooklang extends Plugin {
 	addIngredientsToDatabase(recipe: Recipe) {
 		recipe.ingredients.forEach(e => {
 			if (!e.raw) return
-			this.settings.ingredients[e.raw] = e
+			this.settings.ingredients.set(e.raw, e)
 		})
 
 		this.saveSettings()
 	}
 
 	refreshMarkdown() {
-		const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-		if (!markdownView) return
-		markdownView.previewMode.rerender(true);
+		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+		view?.previewMode.rerender(true);
+
+		// refresh editor extension
+		this.app.workspace.updateOptions();
 	}
 }
 
