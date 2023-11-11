@@ -29,19 +29,19 @@ export function RenderIngredient(i: Ingredient, showIngredientAmounts: boolean):
 
 // SpanString wraps the provided string in a span html element, allowing it to be highlighted.
 // Optionally adds the `plugin-mc-high-contrast` class, making the span high contrast.
-export function SpanString(str: string, highContrast: boolean): string {
-	let sStr = ""
+export function SpanString(str: string, highContrast: boolean): HTMLElement {
+	let element = document.createElement("span")
+	element.innerText = str
+	element.classList.add("plugin-mc-highlight")
 	if (highContrast) {
-		sStr = "<span class='plugin-mc-highlight plugin-mc-high-contrast'>" + str + "</span>"
-	} else {
-		sStr = "<span class='plugin-mc-highlight'>" + str + "</span>"
+		element.classList.add("plugin-mc-high-contrast")
 	}
 
-	return sStr
+	return element
 }
 
 // formatTime reformats a duration in seconds to a more human-readable number
-function formatTime(seconds) {
+function formatTime(seconds: number): string {
 	if (seconds < 60) {
 		return `${seconds} seconds`;
 	} else if (seconds < 3600) {

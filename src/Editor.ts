@@ -1,111 +1,95 @@
 import { syntaxTree } from "@codemirror/language";
-import { RangeSetBuilder } from "@codemirror/state";
+import { Extension, RangeSetBuilder, EditorState, RangeSet, StateField, Transaction } from "@codemirror/state";
 import {
     Decoration,
     DecorationSet,
     EditorView,
-    ViewPlugin,
-    PluginValue,
-    ViewUpdate,
     WidgetType,
 } from "@codemirror/view";
-import { editorLivePreviewField, livePreviewState } from "obsidian";
 
 import MinimalCooklang, { LoadRecipe } from "./main"
 import { Ingredient, Timer } from "cooklang";
 import { RenderIngredient, SpanString } from "./Renderer";
 import { MinimalCooklangSettings } from "./Settings";
 
-export function EditorPlugin(plugin: MinimalCooklang) {
-    function createEditorPlugin(view: EditorView) {
-        return new editorPlugin(view, plugin);
-    }
+export function CreateEditorPlugin(plugin: MinimalCooklang) {
+    return StateField.define<DecorationSet>({
+        create(state): DecorationSet {
+            return Decoration.none;
+        },
+        update(oldState: DecorationSet, transaction: Transaction): DecorationSet {
+            return buildDecorations(transaction.state, plugin)
+        },
+        provide(field: StateField<DecorationSet>): Extension {
+            return EditorView.decorations.from(field);
+        },
+    });
+}
 
-    const vp = ViewPlugin.define(createEditorPlugin, {
-        decorations: v => v.decorations
+function buildDecorations(state: EditorState, plugin: MinimalCooklang): RangeSet<Decoration> {
+    const builder = new RangeSetBuilder<Decoration>();
+
+    syntaxTree(state).iterate({
+        enter(node) {
+            if (node.name != "Document") return
+
+            const text = state.doc.sliceString(node.from, node.to);
+            const recipe = LoadRecipe(text)
+
+            //* Prepend ingredients
+
+
+            //* Render highlights
+            // Render ingredients
+            recipe.ingredients.forEach((i) => {
+                if (!i.raw) return
+                const from = text.indexOf(i.raw)
+                const to = from + i.raw.length
+
+                if (inSelectionRange(state, from, to)) return
+
+                builder.add(
+                    from,
+                    to,
+                    Decoration.replace({
+                        widget: new ingredientWidget(i, plugin.settings)
+                    })
+                )
+            })
+
+            // Render timers
+            recipe.timers.forEach((t) => {
+                if (!t.raw) return
+                const from = text.indexOf(t.raw)
+                const to = from + t.raw.length
+
+                if (inSelectionRange(state, from, to)) return
+
+                builder.add(
+                    from,
+                    to,
+                    Decoration.replace({
+                        widget: new timerWidget(t)
+                    })
+                )
+            })
+        }
     });
 
-    return vp
+    return builder.finish()
 }
 
-class editorPlugin implements PluginValue {
-    decorations: DecorationSet
-    plugin: MinimalCooklang
-
-    constructor(view: EditorView, plugin: MinimalCooklang) {
-        this.plugin = plugin
-        this.decorations = this.buildDecorations(view);
-    }
-
-    update(update: ViewUpdate) {
-        //? only active when in LP mode
-        if (!update.state.field(editorLivePreviewField)) {
-            this.decorations = Decoration.none;
-            return;
-        }
-
-        if (update.view.composing || update.view.plugin(livePreviewState)?.mousedown) {
-            this.decorations = this.decorations.map(update.changes);
-            return
-        }
-
-        if (
-            update.selectionSet ||
-            update.viewportChanged ||
-            update.docChanged
-        ) {
-            this.decorations = this.buildDecorations(update.view);
-            return
+function inSelectionRange(state: EditorState, from: number, to: number): boolean {
+    for (const range of state.selection.ranges) {
+        if (from <= range.to && range.from < to) {
+            return true;
         }
     }
 
-    private buildDecorations(view: EditorView): DecorationSet {
-        const builder = new RangeSetBuilder<Decoration>();
-
-        for (const { from, to } of view.visibleRanges) {
-            syntaxTree(view.state).iterate({
-                from, to, enter: (node) => {
-                    if (node.name != "Document") return
-
-                    const text = view.state.sliceDoc(node.from, node.to);
-                    const recipe = LoadRecipe(text)
-
-                    // Render ingredients
-                    recipe.ingredients.forEach((i) => {
-                        if (!i.raw) return
-                        const from = text.indexOf(i.raw)
-                        const to = from + i.raw.length
-
-                        if (this.inSelectionRange(view, from, to)) return
-
-                        builder.add(
-                            from,
-                            to,
-                            Decoration.replace({
-                                widget: new IngredientWidget(i, this.plugin.settings)
-                            })
-                        )
-                    })
-
-                }
-            });
-        }
-
-        return builder.finish();
-    }
-
-    private inSelectionRange(view: EditorView, from: number, to: number): boolean {
-        for (const range of view.state.selection.ranges) {
-            if (from <= range.to && range.from < to) {
-                return true;
-            }
-        }
-
-        return false
-    }
+    return false
 }
 
-class IngredientWidget extends WidgetType {
+class ingredientWidget extends WidgetType {
     ingredient: Ingredient
     settings: MinimalCooklangSettings
     constructor(i: Ingredient, settings: MinimalCooklangSettings) {
@@ -118,13 +102,14 @@ class IngredientWidget extends WidgetType {
         const ingredientText = RenderIngredient(this.ingredient, this.settings.showIngredientAmounts)
         const ingredientHTML = SpanString(ingredientText, this.settings.highContrast)
 
-        const div = document.createElement("span");
-        div.innerHTML = ingredientHTML;
-        return div;
+        // Attach an event listener to the ingredientHTML element
+        ingredientHTML.addEventListener('click', (e) => openOnClick(view, e));
+
+        return ingredientHTML;
     }
 }
 
-class TimerWidget extends WidgetType {
+class timerWidget extends WidgetType {
     timer: Timer
 
     constructor(t: Timer) {
@@ -138,4 +123,17 @@ class TimerWidget extends WidgetType {
         span.textContent = this.timer.name ?? "timer";
         return span;
     }
+}
+
+function openOnClick(view: EditorView, event: MouseEvent) {
+    event.preventDefault();
+
+    // Find the position in the document that corresponds to this widget
+    if (!event.targetNode) return
+    const pos = view.posAtDOM(event.targetNode, 0);
+
+    // Set the editor's cursor to that position
+    view.dispatch(view.state.update({
+        selection: { anchor: pos }
+    }));
 }

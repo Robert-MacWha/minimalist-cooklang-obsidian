@@ -39,13 +39,15 @@ export function HighlightRecipeKeywords(element: HTMLElement, context: MarkdownP
         const ingredients = lineRecipe.ingredients
         ingredients.forEach(e => {
             if (!e.raw) return
-            line = line.replace(e.raw, SpanString(RenderIngredient(e, plugin.settings.showIngredientAmounts), plugin.settings.highContrast))
+            const lineHTML = SpanString(RenderIngredient(e, plugin.settings.showIngredientAmounts), plugin.settings.highContrast)
+            line = line.replace(e.raw, lineHTML.outerHTML)
         })
 
         const timers = lineRecipe.timers
         timers.forEach(e => {
             if (!e.raw) return
-            line = line.replace(e.raw, SpanString(RenderTimer(e, true), plugin.settings.highContrast))
+            const lineHTML = SpanString(RenderTimer(e, true), plugin.settings.highContrast)
+            line = line.replace(e.raw, lineHTML.outerHTML)
         })
 
         p.innerHTML = line

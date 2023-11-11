@@ -4,7 +4,7 @@ import { Recipe, Ingredient, Timer } from 'cooklang';
 import { MinimalCooklangSettings, DEFAULT_SETTINGS, MinimalCooklangSettingsTab } from './Settings'
 import { IngredientSuggestModal } from './IngredientSuggest';
 import { HighlightRecipeKeywords, PrependIngredientsHeader } from './MarkdownPostProcessor';
-import { EditorPlugin } from './Editor';
+import { CreateEditorPlugin } from './Editor';
 
 // TODO: fix bug where, when calling the `refreshMarkdown` method, the frontmatter and document header are removed.
 
@@ -27,8 +27,7 @@ export default class MinimalCooklang extends Plugin {
 			PrependIngredientsHeader(element, context, this)
 		})
 
-		this.registerEditorExtension(EditorPlugin(this));
-
+		this.registerEditorExtension(CreateEditorPlugin(this));
 	}
 
 	async loadSettings() {
@@ -107,7 +106,7 @@ export function IsRecipe(tags: string[]): boolean {
 	return false
 }
 
-// loadRecipe loads the contents of a string and returns the parsed 
+// LoadRecipe loads the contents of a string and returns the parsed 
 // cooklang recipe.
 export function LoadRecipe(content: string): Recipe {
 	const frontMatterRegex = /^---[\s\S]+?---\s*/;
