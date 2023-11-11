@@ -1,6 +1,6 @@
 import { Recipe } from "cooklang";
 import { MarkdownPostProcessorContext } from "obsidian";
-import MinimalCooklang, { IsRecipe } from "./main";
+import MinimalCooklang, { IsRecipe, LoadRecipe } from "./main";
 import {RenderIngredient, RenderTimer, SpanString} from "./Renderer"
 
 export async function PrependIngredientsHeader(element: HTMLElement, context: MarkdownPostProcessorContext, plugin: MinimalCooklang) {
@@ -12,7 +12,7 @@ export async function PrependIngredientsHeader(element: HTMLElement, context: Ma
     const fileContents = plugin.app.workspace.activeEditor?.editor?.getValue()
     if (!fileContents) return
     
-    const recipe = await plugin.loadRecipe(fileContents)
+    const recipe = LoadRecipe(fileContents)
     if (!recipe) return
 
     let ingredientsHTML = element.createEl("div")

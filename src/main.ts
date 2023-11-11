@@ -4,16 +4,13 @@ import { Recipe, Ingredient, Timer } from 'cooklang';
 import { MinimalCooklangSettings, DEFAULT_SETTINGS, MinimalCooklangSettingsTab } from './Settings'
 import { IngredientSuggestModal } from './IngredientSuggest';
 import { HighlightRecipeKeywords, PrependIngredientsHeader } from './MarkdownPostProcessor';
-
+import { EditorPlugin } from './Editor';
 
 // TODO: fix bug where, when calling the `refreshMarkdown` method, the frontmatter and document header are removed.
 
-// TODO: Need to figure out editor extensions so the highlighting can be viewed in the preview mode.
+// TODO: Sort the editor extension decorations so we can show multiple types of widgets at the same time (ingredients and timers)
 
-// TODO: Would like to write a better interpreter than cooklang, since it's annoying to write.
-// maybe @ingredient (amount unit) with space seperators?  Could also try to be more inteligent with recognising units and such.
-
-// TODO: Automatic unit conversion
+// TODO: Switch to a state editor extension / find a way to render the ingredients in preview mode
 
 // TODO: Update README
 
@@ -29,6 +26,9 @@ export default class MinimalCooklang extends Plugin {
 			HighlightRecipeKeywords(element, context, this)
 			PrependIngredientsHeader(element, context, this)
 		})
+
+		this.registerEditorExtension(EditorPlugin(this));
+
 	}
 
 	async loadSettings() {
@@ -55,7 +55,7 @@ export default class MinimalCooklang extends Plugin {
 		if (!IsRecipe(tags)) return;
 		
 		let fileContents = await this.app.vault.read(file)
-		const recipe = this.loadRecipe(fileContents);
+		const recipe = LoadRecipe(fileContents);
 		this.addIngredientsToDatabase(recipe)
 	}
 
@@ -79,16 +79,6 @@ export default class MinimalCooklang extends Plugin {
 		}
 
 		return tags
-	}
-
-	// loadRecipe loads the contents of a string and returns the parsed 
-	// cooklang recipe.
-	loadRecipe(content: string): Recipe {
-		const frontMatterRegex = /^---[\s\S]+?---\s*/;
-		content = content.replace(frontMatterRegex, '');
-
-		const recipe = new Recipe(content)
-		return recipe
 	}
 
 	// addIngredientsToDatabase adds all of a recipe's ingredients to the ingredients database
@@ -115,4 +105,14 @@ export function IsRecipe(tags: string[]): boolean {
 	}
 
 	return false
+}
+
+// loadRecipe loads the contents of a string and returns the parsed 
+// cooklang recipe.
+export function LoadRecipe(content: string): Recipe {
+	const frontMatterRegex = /^---[\s\S]+?---\s*/;
+	content = content.replace(frontMatterRegex, '');
+
+	const recipe = new Recipe(content)
+	return recipe
 }
