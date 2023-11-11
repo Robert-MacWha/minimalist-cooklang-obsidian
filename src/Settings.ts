@@ -10,6 +10,7 @@ export interface MinimalCooklangSettings {
     showIngredientsListPreview: boolean
     showIngredientAmounts: boolean
     reformatTime: boolean
+    dynamicTimer: boolean
     ingredients: Map<string, Ingredient>
 }
 
@@ -21,6 +22,7 @@ export const DEFAULT_SETTINGS: MinimalCooklangSettings = {
     showIngredientsListPreview: true,
     showIngredientAmounts: true,
     reformatTime: true,
+    dynamicTimer: true,
     ingredients: new Map<string, Ingredient>(),
 }
 
@@ -123,6 +125,17 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
             .addToggle(cb => {
                 cb.setValue(this.plugin.settings.reformatTime).onChange(v => {
                     this.plugin.settings.reformatTime = v
+                    this.plugin.saveSettings()
+                    this.plugin.refreshMarkdown()
+                })
+            })
+
+        new Setting(containerEl)
+            .setName("Dynamic Timer")
+            .setDesc("Adds dynamic timers inside recipes that can be played, paused, and reset.")
+            .addToggle(cb => {
+                cb.setValue(this.plugin.settings.dynamicTimer).onChange(v => {
+                    this.plugin.settings.dynamicTimer = v
                     this.plugin.saveSettings()
                     this.plugin.refreshMarkdown()
                 })
