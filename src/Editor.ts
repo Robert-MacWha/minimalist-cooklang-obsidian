@@ -8,8 +8,8 @@ import {
 } from "@codemirror/view";
 
 import MinimalCooklang, { LoadRecipe } from "./main"
-import { Ingredient, Timer } from "cooklang";
-import { RenderIngredient, SpanString } from "./Renderer";
+import { Recipe, Ingredient, Timer } from "cooklang";
+import { RenderIngredient, RenderIngredientsList, SpanString } from "./Renderer";
 import { MinimalCooklangSettings } from "./Settings";
 
 export function CreateEditorPlugin(plugin: MinimalCooklang) {
@@ -37,7 +37,17 @@ function buildDecorations(state: EditorState, plugin: MinimalCooklang): RangeSet
             const recipe = LoadRecipe(text)
 
             //* Prepend ingredients
-
+            if (recipe.steps.length > 0 && recipe.steps[0].raw) {
+                const from = text.indexOf(recipe.steps[0].raw)
+                builder.add(
+                    from,
+                    from,
+                    Decoration.widget({
+                        widget: new ingredientsListWidget(recipe, plugin.settings),
+                        side: -1
+                    })
+                )
+            }
 
             //* Render highlights
             // Render ingredients
@@ -53,23 +63,6 @@ function buildDecorations(state: EditorState, plugin: MinimalCooklang): RangeSet
                     to,
                     Decoration.replace({
                         widget: new ingredientWidget(i, plugin.settings)
-                    })
-                )
-            })
-
-            // Render timers
-            recipe.timers.forEach((t) => {
-                if (!t.raw) return
-                const from = text.indexOf(t.raw)
-                const to = from + t.raw.length
-
-                if (inSelectionRange(state, from, to)) return
-
-                builder.add(
-                    from,
-                    to,
-                    Decoration.replace({
-                        widget: new timerWidget(t)
                     })
                 )
             })
@@ -89,6 +82,21 @@ function inSelectionRange(state: EditorState, from: number, to: number): boolean
     return false
 }
 
+class ingredientsListWidget extends WidgetType {
+    recipe: Recipe
+    settings: MinimalCooklangSettings
+
+    constructor(recipe: Recipe, settings: MinimalCooklangSettings) {
+        super()
+        this.recipe = recipe
+        this.settings = settings
+    }
+
+    toDOM() {
+        return RenderIngredientsList(this.recipe, this.settings)
+    }
+}
+
 class ingredientWidget extends WidgetType {
     ingredient: Ingredient
     settings: MinimalCooklangSettings
@@ -99,7 +107,7 @@ class ingredientWidget extends WidgetType {
     }
 
     toDOM(view: EditorView): HTMLElement {
-        const ingredientText = RenderIngredient(this.ingredient, this.settings.showIngredientAmounts)
+        const ingredientText = RenderIngredient(this.ingredient, this.settings)
         const ingredientHTML = SpanString(ingredientText, this.settings.highContrast)
 
         // Attach an event listener to the ingredientHTML element

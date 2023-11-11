@@ -8,6 +8,7 @@ export interface MinimalCooklangSettings {
     highContrast: boolean
     showIngredientsList: boolean
     showIngredientAmounts: boolean
+    reformatTime: boolean
     ingredients: Map<string, Ingredient>
 }
 
@@ -17,6 +18,7 @@ export const DEFAULT_SETTINGS: MinimalCooklangSettings = {
     highContrast: false,
     showIngredientsList: true,
     showIngredientAmounts: true,
+    reformatTime: true,
     ingredients: new Map<string, Ingredient>(),
 }
 
@@ -90,6 +92,17 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
             .addToggle(cb => {
                 cb.setValue(this.plugin.settings.showIngredientAmounts).onChange(v => {
                     this.plugin.settings.showIngredientAmounts = v
+                    this.plugin.saveSettings()
+                    this.plugin.refreshMarkdown()
+                })
+            })
+
+        new Setting(containerEl)
+            .setName("Reformat Time")
+            .setDesc("Standardize the way timers are show.  May result in odd figures for very specific timers.")
+            .addToggle(cb => {
+                cb.setValue(this.plugin.settings.reformatTime).onChange(v => {
+                    this.plugin.settings.reformatTime = v
                     this.plugin.saveSettings()
                     this.plugin.refreshMarkdown()
                 })
