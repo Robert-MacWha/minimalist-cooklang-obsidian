@@ -1,13 +1,13 @@
 import { syntaxTree } from "@codemirror/language";
 import { RangeSetBuilder } from "@codemirror/state";
 import {
-	Decoration,
-	DecorationSet,
-	EditorView,
+    Decoration,
+    DecorationSet,
+    EditorView,
     ViewPlugin,
-	PluginValue,
-	ViewUpdate,
-	WidgetType,
+    PluginValue,
+    ViewUpdate,
+    WidgetType,
 } from "@codemirror/view";
 import { editorLivePreviewField, livePreviewState } from "obsidian";
 
@@ -31,12 +31,12 @@ export function EditorPlugin(plugin: MinimalCooklang) {
 class editorPlugin implements PluginValue {
     decorations: DecorationSet
     plugin: MinimalCooklang
-    
+
     constructor(view: EditorView, plugin: MinimalCooklang) {
         this.plugin = plugin
         this.decorations = this.buildDecorations(view);
     }
-    
+
     update(update: ViewUpdate) {
         //? only active when in LP mode
         if (!update.state.field(editorLivePreviewField)) {
@@ -48,11 +48,11 @@ class editorPlugin implements PluginValue {
             this.decorations = this.decorations.map(update.changes);
             return
         }
-        
+
         if (
-            update.selectionSet || 
+            update.selectionSet ||
             update.viewportChanged ||
-            update.docChanged       
+            update.docChanged
         ) {
             this.decorations = this.buildDecorations(update.view);
             return
@@ -63,30 +63,32 @@ class editorPlugin implements PluginValue {
         const builder = new RangeSetBuilder<Decoration>();
 
         for (const { from, to } of view.visibleRanges) {
-            syntaxTree(view.state).iterate({from, to, enter: (node) => {
-                if (node.name != "Document") return
+            syntaxTree(view.state).iterate({
+                from, to, enter: (node) => {
+                    if (node.name != "Document") return
 
-                const text = view.state.sliceDoc(node.from, node.to);
-                const recipe = LoadRecipe(text)
-                
-                // Render ingredients
-                recipe.ingredients.forEach((i) => {
-                    if (!i.raw) return
-                    const from = text.indexOf(i.raw)
-                    const to = from + i.raw.length
+                    const text = view.state.sliceDoc(node.from, node.to);
+                    const recipe = LoadRecipe(text)
 
-                    if (this.inSelectionRange(view, from, to)) return
+                    // Render ingredients
+                    recipe.ingredients.forEach((i) => {
+                        if (!i.raw) return
+                        const from = text.indexOf(i.raw)
+                        const to = from + i.raw.length
 
-                    builder.add(
-                        from,
-                        to,
-                        Decoration.replace({
-                            widget: new IngredientWidget(i, this.plugin.settings)
-                        })
-                    )
-                })
+                        if (this.inSelectionRange(view, from, to)) return
 
-            }});
+                        builder.add(
+                            from,
+                            to,
+                            Decoration.replace({
+                                widget: new IngredientWidget(i, this.plugin.settings)
+                            })
+                        )
+                    })
+
+                }
+            });
         }
 
         return builder.finish();
@@ -102,7 +104,7 @@ class editorPlugin implements PluginValue {
         return false
     }
 }
-  
+
 class IngredientWidget extends WidgetType {
     ingredient: Ingredient
     settings: MinimalCooklangSettings

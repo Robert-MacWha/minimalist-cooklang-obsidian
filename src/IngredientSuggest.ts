@@ -10,9 +10,9 @@ export class IngredientSuggestModal extends EditorSuggest<Ingredient> {
         this.app = app
         this.plugin = plugin
     }
-    
+
     getSuggestions(context: EditorSuggestContext): Ingredient[] {
-        let ingredients =  Array.from(this.plugin.settings.ingredients.values())
+        let ingredients = Array.from(this.plugin.settings.ingredients.values())
         if (!ingredients) return []
 
         const query = context.query
@@ -50,10 +50,10 @@ export class IngredientSuggestModal extends EditorSuggest<Ingredient> {
             const nameB = b.name.toUpperCase();
 
             if (nameA < nameB) {
-            return -1;
+                return -1;
             }
             if (nameA > nameB) {
-            return 1;
+                return 1;
             }
 
             // names must be equal
@@ -65,14 +65,14 @@ export class IngredientSuggestModal extends EditorSuggest<Ingredient> {
 
     onTrigger(cursor: EditorPosition, editor: Editor, file: TFile | null): EditorSuggestTriggerInfo | null {
         if (!this.plugin.settings.autocomplete) return null
-        
+
         //? Ensure the trigger is correct
         const triggerPhrase = "@"
         const startPos = this.context?.start || {
             line: cursor.line,
             ch: cursor.ch - triggerPhrase.length,
         };
-        
+
         if (!editor.getRange(startPos, cursor).startsWith(triggerPhrase)) {
             return null;
         }
@@ -85,7 +85,7 @@ export class IngredientSuggestModal extends EditorSuggest<Ingredient> {
             },
             startPos
         );
-      
+
         if (precedingChar && /[`a-zA-Z0-9]/.test(precedingChar)) {
             return null;
         }
@@ -117,8 +117,8 @@ export class IngredientSuggestModal extends EditorSuggest<Ingredient> {
             return;
         }
 
-        let ingredientStr = "@" + suggestion.name 
-        let cursorPos: EditorPosition = {line: this.context.end.line, ch: this.context.start.ch}
+        let ingredientStr = "@" + suggestion.name
+        let cursorPos: EditorPosition = { line: this.context.end.line, ch: this.context.start.ch }
         if (this.plugin.settings.autocompleteWithUnits && suggestion.units) {
             cursorPos.ch += ingredientStr.length + 1
             ingredientStr += "{%" + suggestion.units + "}"
@@ -129,5 +129,5 @@ export class IngredientSuggestModal extends EditorSuggest<Ingredient> {
         activeView.editor.replaceRange(ingredientStr, this.context.start, this.context.end);
 
         activeView.editor.setCursor(cursorPos)
-    } 
+    }
 }

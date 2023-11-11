@@ -34,7 +34,7 @@ export default class MinimalCooklang extends Plugin {
 	async loadSettings() {
 		// Object.assign lets you clone the data, so defaults are not overidden
 		this.settings = Object.assign(
-			{}, 
+			{},
 			DEFAULT_SETTINGS,
 			await this.loadData(),
 		)
@@ -53,7 +53,7 @@ export default class MinimalCooklang extends Plugin {
 
 		let tags = this.getTags(file)
 		if (!IsRecipe(tags)) return;
-		
+
 		let fileContents = await this.app.vault.read(file)
 		const recipe = LoadRecipe(fileContents);
 		this.addIngredientsToDatabase(recipe)
@@ -66,7 +66,7 @@ export default class MinimalCooklang extends Plugin {
 		if (!cache) return [];
 
 		if (cache.frontmatter && cache.frontmatter.tags) {
-			tags = tags.concat(cache.frontmatter.tags) 
+			tags = tags.concat(cache.frontmatter.tags)
 		}
 
 		if (cache.tags) {

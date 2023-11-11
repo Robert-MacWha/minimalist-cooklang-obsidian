@@ -2,13 +2,13 @@ import { Ingredient, Timer } from "cooklang"
 
 // RenderTimer renders a Timer object to a string. Optionally reformats the durration to be more human-readable.
 export function RenderTimer(t: Timer, reformatTime: boolean): string {
-    if (!t.quantity || !t.units) return t.raw ?? ""
-    
-    if (reformatTime && t.seconds) {
-        return formatTime(t.seconds)
-    } else {
-        return t.quantity + " " + t.units
-    }
+	if (!t.quantity || !t.units) return t.raw ?? ""
+
+	if (reformatTime && t.seconds) {
+		return formatTime(t.seconds)
+	} else {
+		return t.quantity + " " + t.units
+	}
 }
 
 // RenderIngredient renders an ingredient object to a string.
@@ -42,13 +42,13 @@ export function SpanString(str: string, highContrast: boolean): string {
 
 // formatTime reformats a duration in seconds to a more human-readable number
 function formatTime(seconds) {
-    if (seconds < 60) {
-        return `${seconds} seconds`;
-    } else if (seconds < 3600) {
-        const minutes = (seconds / 60).toFixed(0);
-        return `${minutes} minutes`;
-    } else {
-        const hours = seconds / 3600;
-        return `${hours % 1 === 0 ? hours.toFixed(0) : hours.toFixed(1)} hour${hours >= 2 ? 's' : ''}`;
-    }
+	if (seconds < 60) {
+		return `${seconds} seconds`;
+	} else if (seconds < 3600) {
+		const minutes = (seconds / 60).toFixed(0);
+		return `${minutes} minutes`;
+	} else {
+		const hours = seconds / 3600;
+		return `${hours % 1 === 0 ? hours.toFixed(0) : hours.toFixed(1)} hour${hours >= 2 ? 's' : ''}`;
+	}
 }

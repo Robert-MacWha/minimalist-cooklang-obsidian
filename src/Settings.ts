@@ -28,33 +28,33 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
 
         this.plugin = plugin
     }
-    
+
     display() {
         let { containerEl } = this
 
         containerEl.empty();
-        containerEl.createEl("h1", {text: "Minimal Cooklang"})
+        containerEl.createEl("h1", { text: "Minimal Cooklang" })
 
         new Setting(containerEl)
-        .setName("Autocomplete")
-        .setDesc("Autocomplete ingredients while writing recipes.")
-        .addToggle((cb) => {
-           cb.setValue(this.plugin.settings.autocomplete).onChange(v => {
-                this.plugin.settings.autocomplete = v
-                this.plugin.saveSettings()
-                this.display()
+            .setName("Autocomplete")
+            .setDesc("Autocomplete ingredients while writing recipes.")
+            .addToggle((cb) => {
+                cb.setValue(this.plugin.settings.autocomplete).onChange(v => {
+                    this.plugin.settings.autocomplete = v
+                    this.plugin.saveSettings()
+                    this.display()
+                })
             })
-        })
 
         const autocompleteWithUnitsSetting = new Setting(containerEl)
-        .setName("Autocomplete With Units")
-        .setDesc("Include ingredient units as options in autocomplete popup.")
-        .addToggle((cb) => {
-           cb.setValue(this.plugin.settings.autocompleteWithUnits).onChange(v => {
-                this.plugin.settings.autocompleteWithUnits = v
-                this.plugin.saveSettings()
-           })
-        })
+            .setName("Autocomplete With Units")
+            .setDesc("Include ingredient units as options in autocomplete popup.")
+            .addToggle((cb) => {
+                cb.setValue(this.plugin.settings.autocompleteWithUnits).onChange(v => {
+                    this.plugin.settings.autocompleteWithUnits = v
+                    this.plugin.saveSettings()
+                })
+            })
 
         if (!this.plugin.settings.autocomplete) {
             // if general spaces are off it doesn't make sense to change the setting
@@ -63,36 +63,36 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
         }
 
         new Setting(containerEl)
-        .setName("High Contrast")
-        .setDesc("Make highlighted recipe ingredients and durations high-contrast using the editor's accent colour.")
-        .addToggle(cb => {
-            cb.setValue(this.plugin.settings.highContrast).onChange(v => {
-                this.plugin.settings.highContrast = v
-                this.plugin.saveSettings()
-                this.plugin.refreshMarkdown()
+            .setName("High Contrast")
+            .setDesc("Make highlighted recipe ingredients and durations high-contrast using the editor's accent colour.")
+            .addToggle(cb => {
+                cb.setValue(this.plugin.settings.highContrast).onChange(v => {
+                    this.plugin.settings.highContrast = v
+                    this.plugin.saveSettings()
+                    this.plugin.refreshMarkdown()
+                })
             })
-        })
 
         new Setting(containerEl)
-        .setName("Show Ingredients List")
-        .setDesc("Show a list of all ingredients used in a recipe while in the reading view.")
-        .addToggle(cb => {
-            cb.setValue(this.plugin.settings.showIngredientsList).onChange(v => {
-                this.plugin.settings.showIngredientsList = v
-                this.plugin.saveSettings()
-                this.plugin.refreshMarkdown()
+            .setName("Show Ingredients List")
+            .setDesc("Show a list of all ingredients used in a recipe while in the reading view.")
+            .addToggle(cb => {
+                cb.setValue(this.plugin.settings.showIngredientsList).onChange(v => {
+                    this.plugin.settings.showIngredientsList = v
+                    this.plugin.saveSettings()
+                    this.plugin.refreshMarkdown()
+                })
             })
-        })
 
         new Setting(containerEl)
-        .setName("Show Ingredient Amounts")
-        .setDesc("Show an ingredient's amount in the step-by-step instructions within a recipe. Ingredient amounts are always shown in the Ingredients List.")
-        .addToggle(cb => {
-            cb.setValue(this.plugin.settings.showIngredientAmounts).onChange(v => {
-                this.plugin.settings.showIngredientAmounts = v
-                this.plugin.saveSettings()
-                this.plugin.refreshMarkdown()
+            .setName("Show Ingredient Amounts")
+            .setDesc("Show an ingredient's amount in the step-by-step instructions within a recipe. Ingredient amounts are always shown in the Ingredients List.")
+            .addToggle(cb => {
+                cb.setValue(this.plugin.settings.showIngredientAmounts).onChange(v => {
+                    this.plugin.settings.showIngredientAmounts = v
+                    this.plugin.saveSettings()
+                    this.plugin.refreshMarkdown()
+                })
             })
-        })
     }
 }
