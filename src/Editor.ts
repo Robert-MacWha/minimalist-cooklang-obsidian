@@ -8,8 +8,8 @@ import {
 } from "@codemirror/view";
 
 import MinimalCooklang, { LoadRecipe } from "./main"
-import { Recipe, Ingredient, Timer } from "cooklang";
-import { RenderIngredient, RenderIngredientsList, SpanString } from "./Renderer";
+import { Recipe, Ingredient, Timer as Cookware } from "cooklang";
+import { RenderCookware, RenderIngredient, RenderIngredientsList, RenderTimer, SpanString } from "./Renderer";
 import { MinimalCooklangSettings } from "./Settings";
 
 export function CreateEditorPlugin(plugin: MinimalCooklang) {
@@ -54,26 +54,50 @@ function buildDecorations(state: EditorState, plugin: MinimalCooklang): RangeSet
             }
 
             //* Render highlights
-            // Render ingredients
-            recipe.ingredients.forEach((i) => {
-                if (!i.raw) return
-                const from = text.indexOf(i.raw)
-                const to = from + i.raw.length
+            // Combine all items into a single array
+            let allItems = [...recipe.timers, ...recipe.ingredients, ...recipe.cookware]
+                .filter(item => item.raw) // Ensure they have a 'raw' property
+                .map(item => ({
+                    type: item instanceof Cookware ? 'timer' : item instanceof Ingredient ? 'ingredient' : 'cookware',
+                    item,
+                    pos: text.indexOf(item.raw ?? "")
+                }));
 
-                if (inSelectionRange(state, from, to)) return
+            // Sort the combined items based on their position
+            allItems.sort((a, b) => a.pos - b.pos);
 
-                builder.add(
-                    from,
-                    to,
-                    Decoration.replace({
-                        widget: new ingredientWidget(i, plugin.settings)
-                    })
-                )
-            })
+            // Render widgets for each item in sorted order
+            allItems.forEach(({ type, item, pos }) => {
+                if (!item.raw) return
+                const length = item.raw.length;
+                switch (type) {
+                    case 'timer':
+                        renderWidget(builder, state, new timerWidget(item, plugin), pos, length);
+                        break;
+                    case 'ingredient':
+                        renderWidget(builder, state, new ingredientWidget(item, plugin), pos, length);
+                        break;
+                    case 'cookware':
+                        renderWidget(builder, state, new cookwareWidget(item, plugin), pos, length);
+                        break;
+                }
+            });
         }
     });
 
     return builder.finish()
+}
+
+function renderWidget(builder: RangeSetBuilder<Decoration>, state: EditorState, widget: WidgetType, from: number, length: number) {
+    if (inSelectionRange(state, from, from + length)) return
+
+    builder.add(
+        from,
+        from + length,
+        Decoration.replace({
+            widget
+        })
+    )
 }
 
 function inSelectionRange(state: EditorState, from: number, to: number): boolean {
@@ -104,10 +128,10 @@ class ingredientsListWidget extends WidgetType {
 class ingredientWidget extends WidgetType {
     ingredient: Ingredient
     settings: MinimalCooklangSettings
-    constructor(i: Ingredient, settings: MinimalCooklangSettings) {
+    constructor(i: Ingredient, plugin: MinimalCooklang) {
         super();
         this.ingredient = i;
-        this.settings = settings
+        this.settings = plugin.settings
     }
 
     toDOM(view: EditorView): HTMLElement {
@@ -122,20 +146,47 @@ class ingredientWidget extends WidgetType {
 }
 
 class timerWidget extends WidgetType {
-    timer: Timer
+    timer: Cookware
+    settings: MinimalCooklangSettings
 
-    constructor(t: Timer) {
+    constructor(t: Cookware, plugin: MinimalCooklang) {
         super()
         this.timer = t
+        this.settings = plugin.settings
     }
 
     toDOM(view: EditorView): HTMLElement {
-        const span = document.createElement("span");
-        span.className = "timer";
-        span.textContent = this.timer.name ?? "timer";
-        return span;
+        const timerText = RenderTimer(this.timer, this.settings)
+        const timerHTML = SpanString(timerText, this.settings.highContrast)
+
+        // Attach an event listener to the ingredientHTML element
+        timerHTML.addEventListener('click', (e) => openOnClick(view, e));
+
+        return timerHTML;
     }
 }
+
+class cookwareWidget extends WidgetType {
+    cookware: Cookware
+    settings: MinimalCooklangSettings
+
+    constructor(c: Cookware, plugin: MinimalCooklang) {
+        super()
+        this.cookware = c
+        this.settings = plugin.settings
+    }
+
+    toDOM(view: EditorView): HTMLElement {
+        const cookwareText = RenderCookware(this.cookware)
+        const cookwareHTML = SpanString(cookwareText, this.settings.highContrast)
+
+        // Attach an event listener to the ingredientHTML element
+        cookwareHTML.addEventListener('click', (e) => openOnClick(view, e));
+
+        return cookwareHTML;
+    }
+}
+
 
 function openOnClick(view: EditorView, event: MouseEvent) {
     event.preventDefault();

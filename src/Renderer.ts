@@ -1,4 +1,4 @@
-import { Recipe, Ingredient, Timer } from "cooklang"
+import { Recipe, Ingredient, Timer, Cookware } from "cooklang"
 import { MinimalCooklangSettings } from "./Settings"
 
 export function RenderIngredientsList(recipe: Recipe): HTMLElement {
@@ -42,6 +42,11 @@ export function RenderIngredient(i: Ingredient, showIngredientAmounts: boolean):
 	}
 
 	return str
+}
+
+export function RenderCookware(c: Cookware): string {
+	if (!c.name) return ""
+	return c.name
 }
 
 // SpanString wraps the provided string in a span html element, allowing it to be highlighted.
