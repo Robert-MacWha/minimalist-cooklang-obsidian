@@ -1,4 +1,13 @@
-import { App, MarkdownView, EditorSuggest, EditorSuggestContext, EditorPosition, Editor, TFile, EditorSuggestTriggerInfo, Instruction } from "obsidian";
+import {
+    App,
+    MarkdownView,
+    EditorSuggest,
+    EditorSuggestContext,
+    EditorPosition,
+    Editor,
+    TFile,
+    EditorSuggestTriggerInfo
+} from "obsidian";
 import MinimalCooklang from "./main";
 import { Ingredient } from "cooklang";
 

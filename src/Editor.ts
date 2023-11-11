@@ -1,5 +1,12 @@
 import { syntaxTree } from "@codemirror/language";
-import { Extension, RangeSetBuilder, EditorState, RangeSet, StateField, Transaction } from "@codemirror/state";
+import {
+    Extension,
+    RangeSetBuilder,
+    EditorState,
+    RangeSet,
+    StateField,
+    Transaction
+} from "@codemirror/state";
 import {
     Decoration,
     DecorationSet,

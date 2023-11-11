@@ -1,5 +1,5 @@
 import { MarkdownView, Plugin, TFile } from 'obsidian';
-import { Recipe, Ingredient, Timer } from 'cooklang';
+import { Recipe } from 'cooklang';
 
 import { MinimalCooklangSettings, DEFAULT_SETTINGS, MinimalCooklangSettingsTab } from './Settings'
 import { IngredientSuggestModal } from './IngredientSuggest';
