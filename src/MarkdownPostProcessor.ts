@@ -1,9 +1,11 @@
 import { Recipe } from "cooklang";
 import { MarkdownPostProcessorContext } from "obsidian";
-import MinimalCooklang, { IsRecipe, RenderIngredient } from "../main";
+import MinimalCooklang, { IsRecipe } from "./main";
+import {RenderIngredient, RenderTimer, SpanString} from "./Renderer"
 
 export async function PrependIngredientsHeader(element: HTMLElement, context: MarkdownPostProcessorContext, plugin: MinimalCooklang) {
-    if (!plugin.settings.showIngredientsInReading) return
+    if (!context.frontmatter) return
+    if (!plugin.settings.showIngredientsList) return
     if (!IsRecipe(context.frontmatter.tags)) return
     if (!element.querySelector("pre.frontmatter")) return   
 
@@ -19,22 +21,15 @@ export async function PrependIngredientsHeader(element: HTMLElement, context: Ma
     const ingredientsList = ingredientsHTML.createEl("ul")
 
     recipe.ingredients.forEach(i => {
-        // let liText = i.name
-
-        // if (i.units && i.amount) {
-        //     liText += " (" + i.amount + " " + i.units + ")"
-        // } else if (i.amount) {
-        //     liText += " (" + i.amount + ")"
-        // }
-
-        let ingredient = RenderIngredient(i, plugin.settings.highContrast, false)
-        let li = ingredientsList.createEl("li", {text: ingredient})
+        let ingredient = RenderIngredient(i, true)
+        ingredientsList.createEl("li", {text: ingredient})
     });
 
     ingredientsHTML.createEl("h1", {text: "Steps"})
 }
 
 export function HighlightRecipeKeywords(element: HTMLElement, context: MarkdownPostProcessorContext, plugin: MinimalCooklang) {
+    if (!context.frontmatter) return
     if (!IsRecipe(context.frontmatter.tags)) return
 
     element.querySelectorAll('p').forEach(p => {
@@ -44,22 +39,13 @@ export function HighlightRecipeKeywords(element: HTMLElement, context: MarkdownP
         const ingredients = lineRecipe.ingredients
         ingredients.forEach(e => {
             if (!e.raw) return
-            line = line.replace(e.raw, RenderIngredient(e, plugin.settings.highContrast, true))
+            line = line.replace(e.raw, SpanString(RenderIngredient(e, plugin.settings.showIngredientAmounts), plugin.settings.highContrast))
         })
 
         const timers = lineRecipe.timers
         timers.forEach(e => {
-            if (!e.amount || !e.units) return
-
-            let replacement: string
-            if (plugin.settings.highContrast) {
-                replacement = "<span class='plugin-mc-highlight  plugin-mc-high-contrast'>" + e.amount + " " + e.units + "</span>"
-            } else {
-                replacement = "<span class='plugin-mc-highlight'>" + e.amount + " " + e.units + "</span>"
-            }
-
             if (!e.raw) return
-            line = line.replace(e.raw, replacement)
+            line = line.replace(e.raw, SpanString(RenderTimer(e, true), plugin.settings.highContrast))
         })
 
         p.innerHTML = line

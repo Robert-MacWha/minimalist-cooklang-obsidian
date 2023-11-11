@@ -1,5 +1,5 @@
 import { App, MarkdownView, EditorSuggest, EditorSuggestContext, EditorPosition, Editor, TFile, EditorSuggestTriggerInfo, Instruction } from "obsidian";
-import MinimalCooklang from "../main";
+import MinimalCooklang from "./main";
 import { Ingredient } from "cooklang";
 
 export class IngredientSuggestModal extends EditorSuggest<Ingredient> {

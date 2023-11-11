@@ -1,9 +1,10 @@
 import { MarkdownView, Plugin, TFile } from 'obsidian';
-import { Recipe, Ingredient } from 'cooklang';
+import { Recipe, Ingredient, Timer } from 'cooklang';
 
-import { MinimalCooklangSettings, DEFAULT_SETTINGS, MinimalCooklangSettingsTab } from './src/Settings'
-import { IngredientSuggestModal } from './src/IngredientSuggest';
-import { HighlightRecipeKeywords, PrependIngredientsHeader } from './src/MarkdownPostProcessor';
+import { MinimalCooklangSettings, DEFAULT_SETTINGS, MinimalCooklangSettingsTab } from './Settings'
+import { IngredientSuggestModal } from './IngredientSuggest';
+import { HighlightRecipeKeywords, PrependIngredientsHeader } from './MarkdownPostProcessor';
+
 
 // TODO: fix bug where, when calling the `refreshMarkdown` method, the frontmatter and document header are removed.
 
@@ -114,25 +115,4 @@ export function IsRecipe(tags: string[]): boolean {
 	}
 
 	return false
-}
-
-export function RenderIngredient(i: Ingredient, highContrast: boolean, spanned: boolean): string {
-	if (!i.name) return ""
-	let iStr = i.name
-
-	if (i.quantity && i.units) {
-		iStr += " (" + i.amount + " " + i.units + ")"
-	} else if (i.amount && i.amount != '1') {
-		iStr += " (" + i.amount + ")"
-	}
-
-	if (!spanned) return iStr
-
-	if (highContrast) {
-		iStr = "<span class='plugin-mc-highlight plugin-mc-high-contrast'>" + iStr + "</span>"
-	} else {
-		iStr = "<span class='plugin-mc-highlight'>" + iStr + "</span>"
-	}
-
-	return iStr
 }

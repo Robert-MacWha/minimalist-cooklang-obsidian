@@ -1,12 +1,13 @@
 import { App, PluginSettingTab, Setting } from "obsidian"
-import MinimalCooklang from "../main"
+import MinimalCooklang from "./main"
 import { Ingredient } from "cooklang"
 
 export interface MinimalCooklangSettings {
     autocomplete: boolean
     autocompleteWithUnits: boolean
     highContrast: boolean
-    showIngredientsInReading: boolean
+    showIngredientsList: boolean
+    showIngredientAmounts: boolean
     ingredients: Map<string, Ingredient>
 }
 
@@ -14,7 +15,8 @@ export const DEFAULT_SETTINGS: MinimalCooklangSettings = {
     autocomplete: true,
     autocompleteWithUnits: false,
     highContrast: false,
-    showIngredientsInReading: true,
+    showIngredientsList: true,
+    showIngredientAmounts: true,
     ingredients: new Map<string, Ingredient>(),
 }
 
@@ -72,11 +74,22 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
         })
 
         new Setting(containerEl)
-        .setName("Ingredients List")
+        .setName("Show Ingredients List")
         .setDesc("Show a list of all ingredients used in a recipe while in the reading view.")
         .addToggle(cb => {
-            cb.setValue(this.plugin.settings.showIngredientsInReading).onChange(v => {
-                this.plugin.settings.showIngredientsInReading = v
+            cb.setValue(this.plugin.settings.showIngredientsList).onChange(v => {
+                this.plugin.settings.showIngredientsList = v
+                this.plugin.saveSettings()
+                this.plugin.refreshMarkdown()
+            })
+        })
+
+        new Setting(containerEl)
+        .setName("Show Ingredient Amounts")
+        .setDesc("Show an ingredient's amount in the step-by-step instructions within a recipe. Ingredient amounts are always shown in the Ingredients List.")
+        .addToggle(cb => {
+            cb.setValue(this.plugin.settings.showIngredientAmounts).onChange(v => {
+                this.plugin.settings.showIngredientAmounts = v
                 this.plugin.saveSettings()
                 this.plugin.refreshMarkdown()
             })
