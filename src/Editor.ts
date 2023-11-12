@@ -16,7 +16,7 @@ import {
 
 import MinimalCooklang, { LoadRecipe } from "./main"
 import { Recipe, Ingredient, Timer as Cookware } from "cooklang";
-import { RenderCookware, RenderIngredient, RenderIngredientsList, RenderTimer, SpanString } from "./Renderer";
+import { RenderCookware, RenderIngredient, RenderIngredientsList, RenderTimer } from "./Renderer";
 import { MinimalCooklangSettings } from "./Settings";
 
 export function CreateEditorPlugin(plugin: MinimalCooklang) {
@@ -96,7 +96,7 @@ function buildDecorations(state: EditorState, plugin: MinimalCooklang): RangeSet
 }
 
 function renderWidget(builder: RangeSetBuilder<Decoration>, state: EditorState, widget: WidgetType, from: number, length: number) {
-    if (inSelectionRange(state, from, from + length)) return
+    if (inSelectionRange(state, from, from + length + 1)) return
 
     builder.add(
         from,
@@ -142,12 +142,8 @@ class ingredientWidget extends WidgetType {
     }
 
     toDOM(view: EditorView): HTMLElement {
-        const ingredientText = RenderIngredient(this.ingredient, this.settings.showIngredientAmounts)
-        const ingredientHTML = SpanString(ingredientText, this.settings.highContrast)
-
-        // Attach an event listener to the ingredientHTML element
+        const ingredientHTML = RenderIngredient(this.ingredient, this.settings.showIngredientAmounts, this.settings.highContrast)
         ingredientHTML.addEventListener('click', (e) => openOnClick(view, e));
-
         return ingredientHTML;
     }
 }
@@ -163,12 +159,8 @@ class timerWidget extends WidgetType {
     }
 
     toDOM(view: EditorView): HTMLElement {
-        const timerText = RenderTimer(this.timer, this.settings)
-        const timerHTML = SpanString(timerText, this.settings.highContrast)
-
-        // Attach an event listener to the ingredientHTML element
+        const timerHTML = RenderTimer(this.timer, this.settings.reformatTime, this.settings.highContrast)
         timerHTML.addEventListener('click', (e) => openOnClick(view, e));
-
         return timerHTML;
     }
 }
@@ -184,12 +176,8 @@ class cookwareWidget extends WidgetType {
     }
 
     toDOM(view: EditorView): HTMLElement {
-        const cookwareText = RenderCookware(this.cookware)
-        const cookwareHTML = SpanString(cookwareText, this.settings.highContrast)
-
-        // Attach an event listener to the ingredientHTML element
+        const cookwareHTML = RenderCookware(this.cookware, this.settings.highContrast)
         cookwareHTML.addEventListener('click', (e) => openOnClick(view, e));
-
         return cookwareHTML;
     }
 }
