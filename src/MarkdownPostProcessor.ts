@@ -2,6 +2,7 @@ import { Recipe } from "cooklang";
 import { MarkdownPostProcessorContext } from "obsidian";
 import MinimalCooklang, { IsRecipe, LoadRecipe } from "./main";
 import { RenderCookware, RenderIngredient, RenderIngredientsList, RenderTimer } from "./Renderer"
+import { RecipeKeywordHighlighterMDRC } from "./renderChilds/HighlightedKeywords";
 
 export async function PrependIngredientsHeader(element: HTMLElement, context: MarkdownPostProcessorContext, plugin: MinimalCooklang) {
     if (!context.frontmatter) return
@@ -18,69 +19,40 @@ export async function PrependIngredientsHeader(element: HTMLElement, context: Ma
     element.append(RenderIngredientsList(recipe))
 }
 
-export function HighlightRecipeKeywords(element: HTMLElement, context: MarkdownPostProcessorContext, plugin: MinimalCooklang) {
-    if (!context.frontmatter) return
-    if (!IsRecipe(context.frontmatter.tags)) return
+export function HighlightRecipeKeywords(
+    element: HTMLElement,
+    context: MarkdownPostProcessorContext,
+    plugin: MinimalCooklang,
+) {
+    if (!context.frontmatter) return []
+    if (!IsRecipe(context.frontmatter.tags)) return []
 
-    highlightRecipeKeywords(element, plugin)
+    const renderChildren = highlightRecipeKeywords(element, context, plugin)
+
+    plugin.recipeKeywordHighlighterMDRCs = plugin.recipeKeywordHighlighterMDRCs.concat(renderChildren)
 }
 
-function highlightRecipeKeywords(element: HTMLElement | ChildNode, plugin: MinimalCooklang) {
-    const settings = plugin.settings
-    if (element.nodeType === Node.ELEMENT_NODE) {
-        // @ts-ignore Typescript warns that classList does not exist on either types.  It does, I want freedom from the error
-        if (element.classList && element.classList.contains('frontmatter')) {
-            return
-        }
-
+function highlightRecipeKeywords(
+    element: HTMLElement,
+    context: MarkdownPostProcessorContext,
+    plugin: MinimalCooklang,
+    renderChildren: RecipeKeywordHighlighterMDRC[] = [],
+): RecipeKeywordHighlighterMDRC[] {
+    if (element.nodeType === Node.ELEMENT_NODE && !element.classList.contains('frontmatter')) {
         element.childNodes.forEach(node => {
-            highlightRecipeKeywords(node, plugin);
-        })
+            if (node.nodeType === Node.TEXT_NODE && node.textContent) {
+                if (!node.textContent) return
 
-        return
+                const highlighter = new RecipeKeywordHighlighterMDRC(element, plugin, node);
+                context.addChild(highlighter);
+                renderChildren.push(highlighter);
+            } else {
+                const recursiveRenderChildren = highlightRecipeKeywords(node as HTMLElement, context, plugin, renderChildren);
+                renderChildren = renderChildren.concat(recursiveRenderChildren)
+
+            }
+        })
     }
 
-
-    if (element.nodeType === Node.TEXT_NODE) {
-        if (!element.textContent) return
-        const recipe = new Recipe(element.textContent)
-
-        recipe.ingredients.forEach(i => {
-            if (!element.textContent) return
-            if (!i.raw) return
-            const lineHTML = RenderIngredient(i, settings.showIngredientAmounts, settings.highContrast)
-
-            const [before, after] = element.textContent.split(i.raw);
-            const afterNode = document.createTextNode(after)
-            element.replaceWith(document.createTextNode(before), lineHTML, afterNode);
-
-            element = afterNode
-        })
-
-        recipe.timers.forEach(t => {
-            if (!element.textContent) return
-            if (!t.raw) return
-            const lineHTML = RenderTimer(t, settings.reformatTime, settings.highContrast)
-
-            const [before, after] = element.textContent.split(t.raw);
-            const afterNode = document.createTextNode(after)
-            element.replaceWith(document.createTextNode(before), lineHTML, afterNode);
-
-            element = afterNode
-        })
-
-        recipe.cookware.forEach(c => {
-            if (!element.textContent) return
-            if (!c.raw) return
-            const lineHTML = RenderCookware(c, settings.highContrast)
-
-            const [before, after] = element.textContent.split(c.raw);
-            const afterNode = document.createTextNode(after)
-            element.replaceWith(document.createTextNode(before), lineHTML, afterNode);
-
-            element = afterNode
-        })
-
-        return
-    }
+    return renderChildren
 }

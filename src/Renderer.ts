@@ -26,11 +26,13 @@ export function RenderIngredient(i: Ingredient, showIngredientAmounts: boolean, 
 			ingredientHTML.classList.add("plugin-mc-high-contrast")
 	}
 
+
 	if (!i.raw) return ingredientHTML
 	if (!i.name) {
 		ingredientHTML.textContent = i.raw
 		return ingredientHTML
 	}
+
 
 	let textContent = i.name
 	if (showIngredientAmounts) {

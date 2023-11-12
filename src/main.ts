@@ -5,6 +5,7 @@ import { MinimalCooklangSettings, DEFAULT_SETTINGS, MinimalCooklangSettingsTab }
 import { IngredientSuggestModal } from './IngredientSuggest';
 import { HighlightRecipeKeywords, PrependIngredientsHeader } from './MarkdownPostProcessor';
 import { CreateEditorPlugin } from './Editor';
+import { RecipeKeywordHighlighterMDRC } from './renderChilds/HighlightedKeywords';
 
 // TODO: fix bug where, when calling the `refreshMarkdown` method, the frontmatter and document header are removed.
 
@@ -15,8 +16,12 @@ import { CreateEditorPlugin } from './Editor';
 export default class MinimalCooklang extends Plugin {
 	settings: MinimalCooklangSettings
 
+	recipeKeywordHighlighterMDRCs: RecipeKeywordHighlighterMDRC[]
+
 	async onload() {
 		await this.loadSettings()
+
+		this.recipeKeywordHighlighterMDRCs = []
 
 		this.registerEvent(this.app.workspace.on('file-open', this.handleFileOpen.bind(this)))
 		this.registerEditorSuggest(new IngredientSuggestModal(this.app, this))
@@ -91,8 +96,10 @@ export default class MinimalCooklang extends Plugin {
 	}
 
 	refreshMarkdown() {
-		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-		view?.previewMode.rerender(true);
+		// refresh render children for preview mode
+		this.recipeKeywordHighlighterMDRCs.forEach(mdrc => {
+			mdrc.refresh()
+		})
 
 		// refresh editor extension
 		this.app.workspace.updateOptions();
