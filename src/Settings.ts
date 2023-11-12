@@ -67,7 +67,7 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
         }
 
         new Setting(containerEl)
-            .setName("High Contrast")
+            .setName("High Contrast*    ")
             .setDesc("Make highlighted recipe ingredients and durations high-contrast using the editor's accent colour.")
             .addToggle(cb => {
                 cb.setValue(this.plugin.settings.highContrast).onChange(v => {
@@ -78,7 +78,7 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
             })
 
         new Setting(containerEl)
-            .setName("Show Ingredient Amounts")
+            .setName("Show Ingredient Amounts*")
             .setDesc("Show an ingredient's amount in the step-by-step instructions within a recipe. Ingredient amounts are always shown in the Ingredients List.")
             .addToggle(cb => {
                 cb.setValue(this.plugin.settings.showIngredientAmounts).onChange(v => {
@@ -89,7 +89,7 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
             })
 
         new Setting(containerEl)
-            .setName("Show Ingredients List")
+            .setName("Show Ingredients List*")
             .setDesc("Show a list of all ingredients used in a recipe while in the reading view.")
             .addToggle(cb => {
                 cb.setValue(this.plugin.settings.showIngredientsList).onChange(v => {
@@ -118,7 +118,7 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
         }
 
         new Setting(containerEl)
-            .setName("Reformat Time")
+            .setName("Reformat Time*")
             .setDesc("Standardize the way timers are show.  May result in odd figures for very specific timers.")
             .addToggle(cb => {
                 cb.setValue(this.plugin.settings.reformatTime).onChange(v => {
@@ -127,6 +127,8 @@ export class MinimalCooklangSettingsTab extends PluginSettingTab {
                     this.plugin.refreshMarkdown()
                 })
             })
+
+        containerEl.createEl('i', { text: "\n\n*Document refresh required for visual changes to reading view." })
 
     }
 }

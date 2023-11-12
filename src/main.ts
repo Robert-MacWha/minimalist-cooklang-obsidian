@@ -91,8 +91,11 @@ export default class MinimalCooklang extends Plugin {
 	}
 
 	refreshMarkdown() {
-		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-		view?.previewMode.rerender(true);
+		//? For whatever reason rerendering seems to delete the frontmatter and 
+		//? document title.  I also can't get MarkdownRenderChildren working (WIP 
+		//? in another branch), so we'll have to live with this.
+		// const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+		// view?.previewMode.rerender(true);
 
 		// refresh editor extension
 		this.app.workspace.updateOptions();
